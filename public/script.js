@@ -1,6 +1,5 @@
 // Constante do seu backend
-const API_URL = "http://localhost:3000/api";
-//'http://localhost:3000/api'https://petwalk-api-0kzx.onrender.com/api;
+const API_URL = "https://petwalk-api-0kzx.onrender.com/api";
 
 // Aguarda o HTML carregar para inicializar os ícones
 document.addEventListener("DOMContentLoaded", () => {
