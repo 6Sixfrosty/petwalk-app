@@ -13,7 +13,7 @@ function protegerRota(tipoPermitido) {
     // 1. Sem sessão → volta para o login
     if (!userStorage) {
         alert("Sessão expirada ou não autorizada. Faça login.");
-        window.location.replace("../public/index.html");
+        window.location.replace("../../public/index.html");
         return null;
     }
 
@@ -23,9 +23,9 @@ function protegerRota(tipoPermitido) {
     if (usuarioLogado.tipo_usuario !== tipoPermitido) {
         alert("Você não tem permissão para acessar esta área.");
         if (usuarioLogado.tipo_usuario === 'dono') {
-            window.location.replace("../Interfaces/dono.html");
+            window.location.replace("../pages/dono.html");
         } else {
-            window.location.replace("../Interfaces/passeador.html");
+            window.location.replace("../pages/passeador.html");
         }
         return null;
     }
@@ -34,8 +34,14 @@ function protegerRota(tipoPermitido) {
     return usuarioLogado;
 }
 
+
+function logout() {
+    localStorage.removeItem('usuarioLogado');
+    window.location.replace("../../public/index.html");
+}
 /**
  * Faz logout: chama a API para setar online=false no banco
+ * 
  * e limpa o localStorage, redirecionando para o login.
  *
  * @param {string} apiUrl 
@@ -62,5 +68,6 @@ async function fazerLogout(apiUrl) {
 
     // Limpa a sessão local independente do resultado
     localStorage.removeItem('usuarioLogado');
-    window.location.replace("../public/index.html");
+    window.location.replace("../../public/index.html");
 }
+

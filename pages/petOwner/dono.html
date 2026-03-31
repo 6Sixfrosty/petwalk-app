@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PetWalk - App do Dono</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="../../auth/guardian.js"></script>
+    <script src="dono.js"></script>
+    <link rel="stylesheet" href="../../public/style.css">
+
+    <style>
+        /* Estilos específicos que não estão no style.css global */
+        .avatar-circle {
+            width: 110px;
+            height: 110px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid white;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .status-bar {
+            height: 32px;
+            padding: 0 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 10px;
+            color: var(--primary);
+            font-weight: 600;
+            position: absolute;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .leaflet-control-attribution {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="mobile-shell">
+        <div class="status-bar">
+            <span></span>
+            <div class="flex gap-1.5 items-center">
+                <div class="w-4 h-2 bg-[var(--primary)] rounded-sm"></div>
+                <div class="w-3.5 h-3.5 bg-[var(--primary)] rounded-full"></div>
+            </div>
+        </div>
+
+
+
+        <!-- =========================
+            SEÇÃO: HOME
+            Descrição: Página inicial do sistema, exibindo visão geral, destaques e acesso rápido às principais funcionalidades.
+            ========================= -->
+        <section id="home" class="screen active bg-[var(--accent)]" style="justify-content: center; padding: 0 24px;">
+            <div class="absolute top-8 right-8 cursor-pointer flex gap-4">
+                <i data-lucide="log-out" class="text-white w-5 h-5 opacity-80 hover:opacity-100" onclick="logout()"></i>
+                <i data-lucide="user" class="text-white w-5 h-5" onclick="navigate('profile')"></i>
+            </div>
+
+            <div class="flex flex-col items-center mb-12 mt-8">
+                <div
+                    class="w-24 h-24 bg-white rounded-full flex items-center justify-center mb-6 shadow-lg border-2 border-[var(--accent-light)]">
+                    <i data-lucide="dog" class="w-12 h-12 text-[var(--accent)]"></i>
+                </div>
+                <h1 class="text-3xl text-white font-semibold tracking-tight">PetWalk</h1>
+                <p class="text-white opacity-80 mt-2 text-sm text-center">Conectando pets e passeadores locais.</p>
+            </div>
+
+            <div class="space-y-4">
+                <button class="btn-main w-full" onclick="navigate('pet')">
+                    <i data-lucide="dog"></i>
+                    <span>Seu Pet</span>
+                    <i data-lucide="arrow-right" class="opacity-40 ml-auto"></i>
+                </button>
+
+                <button class="btn-main w-full !bg-white !text-[var(--primary)] shadow-md" onclick="openMapScreen()">
+                    <i data-lucide="map" class="text-[var(--accent)]"></i>
+                    <span>Mapa de Passeadores</span>
+                    <i data-lucide="arrow-right" class="opacity-40 ml-auto"></i>
+                </button>
+
+                <button class="btn-main w-full !bg-[var(--orange)] text-white">
+                    <i data-lucide="list"></i>
+                    <span>Lista de Passeadores</span>
+                    <i data-lucide="arrow-right" class="opacity-40 ml-auto"></i>
+                </button>
+
+                <button class="btn-main w-full" onclick="navigate('track')">
+                    <i data-lucide="map-pin"></i>
+                    <span>Localizar Pet</span>
+                    <i data-lucide="arrow-right" class="opacity-40 ml-auto"></i>
+                </button>
+            </div>
+        </section>
+
+
+
+        <!-- =========================
+            SEÇÃO: MAPA DE PASSEADORES
+            Descrição: Exibe no mapa a localização dos passeadores disponíveis para realizar passeios.
+            ========================= -->
+        <section id="map-screen" class="screen bg-[var(--muted)]" style="justify-content: space-between;">
+            <div class="p-6 pt-12 flex items-center">
+                <div class="bg-white p-2 rounded-full shadow-lg cursor-pointer" onclick="navigate('home')">
+                    <i data-lucide="chevron-left" class="text-[var(--primary)] w-6 h-6"></i>
+                </div>
+                <h1 class="text-lg font-medium text-[var(--primary)] ml-4">Mapa de Passeadores</h1>
+            </div>
+
+            <div class="flex-1 flex flex-col items-center justify-center gap-4 px-8">
+                <div class="w-20 h-20 bg-[var(--accent-light)] rounded-full flex items-center justify-center">
+                    <i data-lucide="map" class="w-10 h-10 text-[var(--accent)]"></i>
+                </div>
+                <h2 class="text-xl font-bold text-[var(--primary)] text-center">Funcionalidade em Desenvolvimento</h2>
+                <p class="text-sm text-gray-500 text-center leading-relaxed">Em breve você poderá visualizar os
+                    passeadores disponíveis em tempo real no mapa.</p>
+            </div>
+
+            <div class="p-6">
+                <button class="btn-main w-full" onclick="navigate('home')">Voltar ao Início</button>
+            </div>
+        </section>
+
+
+
+        <!-- =========================
+            SEÇÃO: SEU PET
+            Descrição: Exibe informações do pet do usuário, como nome, raça, idade e detalhes para o passeio.
+            ========================= -->
+        <section id="pet" class="screen bg-[var(--muted)]">
+            <div class="bg-[var(--accent)] rounded-b-[2.5rem] p-6 pt-10 relative flex items-center justify-between">
+                <i data-lucide="chevron-left" onclick="navigate('home')" class="cursor-pointer text-white"></i>
+                <h1 class="text-lg font-medium text-white">Seu Pet</h1>
+                <div class="w-6"></div>
+            </div>
+
+            <div class="flex flex-col items-center px-6 pt-6 pb-2">
+                <img src="https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=200"
+                    class="avatar-circle mb-4 border-[var(--accent)]">
+                <h2 id="petName" class="text-2xl font-bold text-[var(--primary)]">Carregando...</h2>
+                <p id="petBreed" class="text-[var(--accent)] font-medium mt-1">—</p>
+            </div>
+
+            <div class="px-6 mt-4 space-y-4">
+                <div class="bg-white p-4 rounded-xl grid grid-cols-2 gap-4 text-center shadow-sm">
+                    <div class="p-3 bg-gray-50 rounded-lg border border-gray-100">
+                        <span class="text-xs text-gray-400 uppercase font-bold tracking-wider">Porte</span>
+                        <span id="petPorte" class="block font-bold text-[var(--primary)] mt-1">—</span>
+                    </div>
+                    <div class="p-3 bg-gray-50 rounded-lg border border-gray-100">
+                        <span class="text-xs text-gray-400 uppercase font-bold tracking-wider">Idade</span>
+                        <span id="petIdade" class="block font-bold text-[var(--primary)] mt-1">—</span>
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                    <div class="flex items-center gap-2 mb-3">
+                        <div class="bg-[var(--accent-light)] p-1.5 rounded-full">
+                            <i data-lucide="notebook-pen" class="w-4 h-4 text-[var(--accent)]"></i>
+                        </div>
+                        <span class="text-xs text-gray-400 uppercase font-bold tracking-wider">Observações</span>
+                    </div>
+                    <p id="petObservacoes" class="text-sm text-gray-600 leading-relaxed">—</p>
+                </div>
+            </div>
+        </section>
+
+
+
+<!-- =========================
+    SEÇÃO: PERFIL
+    Descrição: Exibe e permite editar as informações do usuário, como dados pessoais, contato e preferências.
+    ========================= -->
+<section id="profile" class="screen bg-[var(--muted)]">
+  <!-- Cabeçalho: altura menor -->
+  <div class="relative bg-[var(--accent)] h-32 sm:h-36 rounded-b-[2.5rem] flex flex-col justify-end">
+    <button class="absolute left-5 top-7 bg-white/30 hover:bg-white/60 p-2 rounded-full transition" onclick="navigate('home')">
+      <i data-lucide="chevron-left" class="text-white"></i>
+    </button>
+    <div class="flex flex-col items-center z-10">
+      <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200"
+        class="avatar-circle border-4 border-white shadow-xl -mb-5" alt="Foto de perfil">
+    </div>
+  </div>
+
+  <!-- Card central com padding superior equilibrado -->
+  <div class="flex flex-col items-center px-6" style="margin-top: -46px;">
+    <br><br><br>
+    <div class="w-full bg-white rounded-2xl shadow-md p-6 pt-8 border border-gray-100 flex flex-col items-center" style="min-height: 320px">
+      <h2 id="profileName" class="text-2xl font-bold text-[var(--primary)]">Carregando...</h2>
+      <p id="profileEmail" class="text-gray-500 text-xs mt-1">carregando..</p>
+      <span class="mt-2 flex items-center gap-2">
+        <span id="profileType" class="bg-[var(--accent-light)] text-[var(--accent)] text-xs font-semibold px-3 py-1 rounded-full">Tipo</span>
+        <span id="profileStatus" class="bg-green-100 text-green-700 text-xs font-semibold px-3 py-1 rounded-full">Ativo</span>
+      </span>
+      <div class="w-full mt-8 space-y-4">
+        <!-- Telefone -->
+        <div class="flex items-center gap-3">
+          <div class="bg-[var(--accent-light)] p-2 rounded-full">
+            <i data-lucide="phone" class="w-5 h-5 text-[var(--accent)]"></i>
+          </div>
+          <div>
+            <div class="text-xs text-gray-400 font-semibold">Telefone</div>
+            <div id="profilePhone" class="text-[var(--primary)] font-bold">...</div>
+          </div>
+        </div>
+        <!-- Endereço/Localização -->
+        <div class="flex items-center gap-3">
+          <div class="bg-[var(--accent-light)] p-2 rounded-full">
+            <i data-lucide="map-pin" class="w-5 h-5 text-[var(--accent)]"></i>
+          </div>
+          <div>
+            <div class="text-xs text-gray-400 font-semibold">Região/Endereço</div>
+            <div class="text-[var(--primary)] font-medium">Sua Região</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+
+    <!-- =========================
+        SEÇÃO: LISTA PASSEADORES
+        Descrição: Exibe todos os funcionários cadastrados, com informações básicas e opções de gerenciamento.
+        ========================= -->
+        <section id="explore" class="screen bg-[var(--muted)]" style="overflow-y: auto;">
+            <div class="bg-[var(--accent)] rounded-b-[2.5rem] p-6 pt-10 relative flex items-center justify-between">
+                <i data-lucide="chevron-left" onclick="navigate('home')" class="cursor-pointer text-white"></i>
+                <h1 class="text-lg font-medium text-white">Passeadores</h1>
+                <div class="w-6"></div>
+            </div>
+
+            <div class="px-6 pt-4">
+                <div class="bg-white p-3 rounded-full flex gap-3 shadow-sm border border-gray-100">
+                    <i data-lucide="search" class="text-[var(--primary)] opacity-50"></i>
+                    <input type="text" placeholder="Buscar passeadores..."
+                        class="flex-1 bg-transparent text-sm outline-none">
+                </div>
+            </div>
+
+            <div class="px-6 mt-4 pb-6">
+                <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-3">Próximos de você</h3>
+                <div id="walkersListContainer" class="space-y-3">
+                    <p class="text-xs text-gray-400 text-center">Procurando passeadores...</p>
+                </div>
+            </div>
+        </section>
+
+
+
+        <!-- =========================
+            SEÇÃO: PERFIL DO PASSEADOR
+            Descrição: Exibe informações do passeador.
+            ========================= -->
+        <section id="walker" class="screen bg-[var(--muted)]">
+            <div class="bg-[var(--accent)] rounded-b-[2.5rem] p-6 pt-10 relative flex items-center justify-between">
+                <i data-lucide="chevron-left" onclick="navigate('explore')" class="cursor-pointer text-white"></i>
+                <h1 class="text-lg text-white font-medium">Perfil Passeador</h1>
+                <div class="w-6"></div>
+            </div>
+
+            <div class="flex flex-col items-center px-6 pt-6 pb-2">
+                <img src="https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=200"
+                    class="avatar-circle mb-4 border-[var(--accent)] shadow-xl">
+                <h2 id="walkerProfileName" class="text-2xl font-bold text-[var(--primary)]">...</h2>
+                <p class="text-[var(--accent)] text-sm flex gap-1 items-center font-medium mt-1">
+                    <i data-lucide="shield-check" class="w-4 h-4"></i> Verificado
+                </p>
+            </div>
+
+            <div class="px-6 mt-2 space-y-4">
+                <div class="bg-white p-4 rounded-xl grid grid-cols-2 gap-4 text-center shadow-sm">
+                    <div class="p-3 bg-gray-50 rounded-lg border border-gray-100">
+                        <span class="text-xs text-gray-400 uppercase font-bold tracking-wider">Valor/Hora</span>
+                        <span id="walkerProfilePrice" class="block font-bold text-[var(--primary)] mt-1">R$ 0,00</span>
+                    </div>
+                    <div class="p-3 bg-gray-50 rounded-lg border border-gray-100">
+                        <span class="text-xs text-gray-400 uppercase font-bold tracking-wider">Avaliação</span>
+                        <span id="walkerProfileRating" class="block font-bold text-[var(--accent)] mt-1">...</span>
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                    <div class="flex items-center gap-2 mb-3">
+                        <div class="bg-[var(--accent-light)] p-1.5 rounded-full">
+                            <i data-lucide="quote" class="w-4 h-4 text-[var(--accent)]"></i>
+                        </div>
+                        <span class="text-xs text-gray-400 uppercase font-bold tracking-wider">Sobre</span>
+                    </div>
+                    <p id="walkerProfileBio" class="text-sm text-gray-600 leading-relaxed italic">...</p>
+                </div>
+            </div>
+
+            <div class="p-6 mt-auto">
+                <button class="btn-main w-full !bg-[var(--orange)]" onclick="navigate('checkout')">Agendar
+                    Passeio</button>
+            </div>
+        </section>
+
+
+
+        <!-- =========================
+            SEÇÃO: AGENDAMENTO
+            Descrição: Permite selecionar data, horário e tipo de serviço (30min ou 60min) para o passeio do pet.
+            ========================= -->
+        <section id="checkout" class="screen bg-[var(--muted)]">
+            <div class="bg-[var(--accent)] rounded-b-[2.5rem] p-6 pt-10 flex items-center justify-between">
+                <i data-lucide="chevron-left" onclick="navigate('walker')" class="cursor-pointer text-white"></i>
+                <h1 class="text-lg font-medium text-white">Confirmar Passeio</h1>
+                <div class="w-6"></div>
+            </div>
+
+            <!-- Passeador selecionado -->
+            <div class="mx-6 mt-4 bg-white rounded-2xl p-4 flex items-center gap-4 shadow-sm border border-gray-100">
+                <img src="https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=200"
+                    class="w-14 h-14 rounded-full object-cover border-2 border-[var(--accent)]">
+                <div class="flex-1">
+                    <p class="text-xs text-gray-400 uppercase font-bold tracking-wider mb-1">Passeador</p>
+                    <h3 id="checkoutWalkerName" class="font-bold text-[var(--primary)]">...</h3>
+                    <p class="text-xs text-[var(--accent)] font-medium flex items-center gap-1 mt-0.5">
+                        <i data-lucide="shield-check" class="w-3 h-3"></i> Verificado
+                    </p>
+                </div>
+                <div class="text-right">
+                    <p class="text-xs text-gray-400 mb-1">Avaliação</p>
+                    <p class="text-sm font-bold text-[var(--accent)]">⭐ 5.0</p>
+                </div>
+            </div>
+
+            <!-- Detalhes do serviço -->
+            <div class="mx-6 mt-3 bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="px-4 py-3 flex justify-between items-center border-b border-gray-100">
+                    <div class="flex items-center gap-3">
+                        <div class="bg-[var(--accent-light)] p-2 rounded-full">
+                            <i data-lucide="clock" class="w-4 h-4 text-[var(--accent)]"></i>
+                        </div>
+                        <span class="text-sm text-gray-600 font-medium">Duração</span>
+                    </div>
+                    <span class="text-sm font-bold text-[var(--primary)]">1 hora</span>
+                </div>
+                <div class="px-4 py-3 flex justify-between items-center border-b border-gray-100">
+                    <div class="flex items-center gap-3">
+                        <div class="bg-[var(--accent-light)] p-2 rounded-full">
+                            <i data-lucide="calendar" class="w-4 h-4 text-[var(--accent)]"></i>
+                        </div>
+                        <span class="text-sm text-gray-600 font-medium">Data</span>
+                    </div>
+                    <span class="text-sm font-bold text-[var(--primary)]">Agora</span>
+                </div>
+                <div class="px-4 py-3 flex justify-between items-center">
+                    <div class="flex items-center gap-3">
+                        <div class="bg-[var(--accent-light)] p-2 rounded-full">
+                            <i data-lucide="map-pin" class="w-4 h-4 text-[var(--accent)]"></i>
+                        </div>
+                        <span class="text-sm text-gray-600 font-medium">Local</span>
+                    </div>
+                    <span class="text-sm font-bold text-[var(--primary)]">Sua localização</span>
+                </div>
+            </div>
+
+            <!-- Resumo de pagamento -->
+            <div class="mx-6 mt-3 bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="px-4 py-3 flex justify-between items-center border-b border-gray-100">
+                    <span class="text-sm text-gray-500">Subtotal</span>
+                    <span id="checkoutSubtotal" class="text-sm font-medium text-[var(--primary)]">R$ 0,00</span>
+                </div>
+                <div class="px-4 py-3 flex justify-between items-center border-b border-gray-100">
+                    <span class="text-sm text-gray-500">Taxa de serviço</span>
+                    <span id="checkoutTaxa" class="text-sm font-medium text-[var(--primary)]">R$ 0,00</span>
+                </div>
+                <div class="px-4 py-3 flex justify-between items-center">
+                    <span class="text-sm font-bold text-[var(--primary)]">Total</span>
+                    <span id="checkoutTotal" class="text-lg font-bold text-[var(--accent)]">R$ 0,00</span>
+                </div>
+            </div>
+
+            <!-- Método de pagamento -->
+            <div class="mx-6 mt-3 bg-white rounded-2xl p-4 flex items-center gap-3 shadow-sm border border-gray-100">
+                <div class="bg-[var(--accent-light)] p-2 rounded-full">
+                    <i data-lucide="credit-card" class="w-4 h-4 text-[var(--accent)]"></i>
+                </div>
+                <div class="flex-1">
+                    <p class="text-xs text-gray-400">Pagamento</p>
+                    <p class="text-sm font-bold text-[var(--primary)]">Cartão de crédito</p>
+                </div>
+                <i data-lucide="chevron-right" class="w-4 h-4 text-gray-400"></i>
+            </div>
+
+            <div class="p-6 mt-auto">
+                <button class="btn-main w-full !bg-[var(--orange)]" onclick="confirmAndPay()">
+                    <i data-lucide="lock" class="w-4 h-4 mr-2"></i>
+                    Confirmar e Pagar
+                </button>
+            </div>
+        </section>
+
+        <section id="track" class="screen" style="justify-content: space-between;">
+            <div class="bg-slate-100 flex-1 relative" style="height: 100%;">
+                <img src="https://images.unsplash.com/photo-1569336415962-a4bd9f6ffc07?w=1080&h=1080&crop=faces"
+                    class="absolute inset-0 w-full h-full object-cover grayscale opacity-60">
+                <div class="absolute top-10 left-6 z-30 p-2 bg-white rounded-full shadow-md cursor-pointer"
+                    onclick="navigate('home')">
+                    <i data-lucide="chevron-left" class="text-[var(--primary)]"></i>
+                </div>
+
+                <div class="absolute top-[40%] left-[45%] z-20">
+                    <img src="https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=100&h=100&crop=faces"
+                        class="w-14 h-14 rounded-full object-cover border-4 border-white shadow-xl border-[var(--accent)] animate-pulse">
+                    <div class="absolute -bottom-1 -right-1 bg-[var(--accent)] p-1.5 rounded-full"><i
+                            data-lucide="navigation" class="w-3 h-3 text-white"></i></div>
+                </div>
+            </div>
+
+            <div
+                class="p-6 bg-white rounded-t-[2.5rem] shadow-[0_-10px_30px_rgba(0,0,0,0.1)] relative z-20 flex flex-col gap-4">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-lg font-bold text-[var(--accent)] flex gap-2 items-center"><i data-lucide="activity"
+                            class="w-5 h-5 text-[var(--accent)]"></i> Passeio Ativo</h3>
+                    <span
+                        class="bg-green-100 text-green-700 text-xs font-bold px-3 py-1 rounded-full animate-pulse">Online</span>
+                </div>
+
+                <div class="flex items-center gap-4 border border-[var(--muted)] p-4 rounded-xl bg-slate-50">
+                    <img src="https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=200"
+                        class="w-12 h-12 rounded-full object-cover">
+                    <div class="flex-1">
+                        <h4 id="trackWalkerName" class="font-bold text-sm text-[var(--primary)]">...</h4>
+                        <p class="text-xs text-gray-500 mt-1 font-medium">Tempo Restante: <span
+                                class="text-[var(--primary)] font-bold">Em andamento</span></p>
+                    </div>
+                    <a href="#" class="p-3 bg-[var(--accent-light)] rounded-full text-[var(--accent)]"><i
+                            data-lucide="phone" class="w-4 h-4"></i></a>
+                </div>
+                <button class="btn-main w-full !bg-[var(--alert)]" onclick="finishWalk()">Encerrar Passeio</button>
+            </div>
+        </section>
+
+        <section id="rating" class="screen bg-[var(--muted)]" style="justify-content: center;">
+            <div
+                class="h-32 bg-[var(--accent)] p-6 relative flex flex-col items-center justify-center pt-8 rounded-b-[2.5rem]">
+                <h1 class="text-xl text-white font-bold">Passeio Concluído!</h1>
+            </div>
+            <div class="p-6 -mt-16 flex flex-col items-center flex-1">
+                <img src="https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=200"
+                    class="avatar-circle mb-6 border-[var(--accent)] shadow-xl">
+                <h2 class="text-2xl font-bold text-center text-[var(--primary)] leading-tight">Como foi o passeio?</h2>
+                <p class="text-gray-500 text-sm mt-3 text-center">O valor foi creditado na carteira do passeador.</p>
+
+                <div class="flex gap-3 my-8 stars">
+                    <i data-lucide="star"
+                        class="w-10 h-10 text-slate-300 fill-slate-300 cursor-pointer transition-colors"
+                        onclick="setRating(1)"></i>
+                    <i data-lucide="star"
+                        class="w-10 h-10 text-slate-300 fill-slate-300 cursor-pointer transition-colors"
+                        onclick="setRating(2)"></i>
+                    <i data-lucide="star"
+                        class="w-10 h-10 text-slate-300 fill-slate-300 cursor-pointer transition-colors"
+                        onclick="setRating(3)"></i>
+                    <i data-lucide="star"
+                        class="w-10 h-10 text-[var(--accent)] fill-[var(--accent)] cursor-pointer transition-colors"
+                        onclick="setRating(4)"></i>
+                    <i data-lucide="star"
+                        class="w-10 h-10 text-slate-300 fill-slate-300 cursor-pointer transition-colors"
+                        onclick="setRating(5)"></i>
+                </div>
+
+                <textarea placeholder="Deixe um elogio ou comentário..."
+                    class="w-full h-32 p-4 bg-white rounded-xl border border-gray-200 text-sm resize-none outline-none focus:border-[var(--accent)] transition-colors"></textarea>
+
+                <button class="btn-main w-full mt-auto" onclick="navigate('home')">Enviar Avaliação <i
+                        data-lucide="send" class="w-4 h-4 ml-1"></i></button>
+            </div>
+        </section>
+
+    </div>
+</body>
+
+</html>

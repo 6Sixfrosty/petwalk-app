@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PetWalk - Painel Pro</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="../../auth/guardian.js"></script>
+    <script src="petwalker.js"></script>
+
+    <link rel="stylesheet" href="../../public/style.css">
+
+    <style>
+        .avatar-circle { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 4px solid white; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        .status-bar { height: 32px; padding: 0 16px; display: flex; justify-content: space-between; align-items: center; font-size: 10px; color: var(--primary); font-weight: 600; position: absolute; width: 100%; top: 0; z-index: 100; }
+        .toggle-checkbox:checked { right: 0; border-color: #68D391; }
+        .toggle-checkbox:checked + .toggle-label { background-color: #68D391; }
+        
+        /* Oculta scrollbar mas mantém a rolagem para o estilo Uber */
+        .hide-scroll::-webkit-scrollbar { display: none; }
+        .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body>
+
+    <div class="mobile-shell">
+        <div class="status-bar">
+            <span></span>
+            <div class="flex gap-1.5 items-center">
+                <div class="w-4 h-2 bg-[var(--primary)] rounded-sm"></div>
+                <div class="w-3.5 h-3.5 bg-[var(--primary)] rounded-full"></div>
+            </div>
+        </div>
+
+        <section id="home" class="screen active bg-white flex flex-col" style="padding: 0 24px; padding-top: 48px;">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h1 id="walkerGreeting" class="text-2xl font-bold text-[var(--primary)]">Carregando... 🐕</h1>
+                    <p class="text-sm text-gray-500 mt-1">Seu painel profissional</p>
+                </div>
+                
+                <div class="flex items-center gap-4">
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="onlineToggle" class="sr-only peer" checked onchange="toggleOnline()">
+                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[var(--accent)]"></div>
+                    </label>
+                    <i data-lucide="log-out" class="text-red-400 w-6 h-6 cursor-pointer hover:text-red-600 transition-colors" onclick="logout()"></i>
+                </div>
+            </div>
+
+            <div class="bg-[var(--primary)] text-white p-6 rounded-3xl mb-6 shadow-xl relative overflow-hidden shrink-0">
+                <div class="absolute -right-4 -top-4 opacity-10"><i data-lucide="trending-up" class="w-32 h-32"></i></div>
+                <div class="flex justify-between items-center mb-4 relative z-10">
+                    <span class="text-xs opacity-80 uppercase font-bold tracking-widest">Saldo na Carteira</span>
+                    <div class="flex items-center gap-2 bg-white/10 px-3 py-1 rounded-full">
+                        <div id="statusDot" class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></div>
+                        <span id="statusTextBadge" class="text-[10px] font-bold uppercase tracking-wider">Online</span>
+                    </div>
+                </div>
+                <h2 id="walletBalance" class="text-4xl font-bold mt-1 text-[var(--accent)] relative z-10">R$ 0,00</h2>
+                <div class="mt-6 flex gap-3 relative z-10">
+                    <button class="flex-1 bg-white/10 hover:bg-white/20 transition-colors py-2 rounded-xl text-xs font-bold" onclick="navigate('profile')">MEU PERFIL</button>
+                    <button class="flex-1 bg-[var(--accent)] hover:bg-teal-400 transition-colors py-2 rounded-xl text-xs font-bold text-[var(--primary)]" onclick="alert('Funcionalidade de saque em breve!')">SACAR</button>
+                </div>
+            </div>
+
+            <div class="flex justify-between items-center mb-4 shrink-0">
+                <h3 class="font-bold text-[var(--primary)] flex items-center gap-2">
+                    <i data-lucide="bell-ring" class="w-5 h-5 text-[var(--orange)]"></i> Novos Pedidos
+                </h3>
+                <span id="pendingCountBadge" class="bg-[var(--orange)] text-white text-[10px] font-bold px-2 py-0.5 rounded-full">0 Pendentes</span>
+            </div>
+
+            <div id="pendingRequestsContainer" class="flex-1 overflow-y-auto hide-scroll space-y-4 pb-12 -mx-2 px-2">
+                <p class="text-xs text-gray-400 text-center mt-4">Nenhum pedido no momento.</p>
+            </div>
+        </section>
+
+        <section id="request-detail" class="screen bg-[var(--muted)]">
+            <div class="h-32 bg-[var(--muted)] p-6 relative flex items-center justify-between pt-8">
+                <i data-lucide="chevron-left" onclick="navigate('home')" class="cursor-pointer text-[var(--primary)]"></i>
+                <h1 class="text-lg font-medium text-[var(--primary)]">Detalhes do Pedido</h1>
+                <div class="w-6"></div>
+            </div>
+            
+            <div class="p-6 -mt-10">
+                <div class="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 mb-6 relative">
+                    <div class="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                        <img id="detailPetImg" src="https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=200" class="w-20 h-20 rounded-full object-cover border-4 border-white shadow-md">
+                    </div>
+                    <div class="mt-8 text-center border-b border-gray-100 pb-4 mb-4">
+                        <h2 id="detailPetName" class="text-2xl font-bold text-[var(--primary)]">...</h2>
+                        <p id="detailPetInfo" class="text-[var(--accent)] font-medium text-sm">Raça • Porte</p>
+                    </div>
+                    
+                    <div class="space-y-3">
+                        <div class="flex items-center gap-3 text-sm">
+                            <i data-lucide="user" class="text-gray-400 w-4 h-4"></i>
+                            <span class="text-gray-600">Dono(a): <strong id="detailOwnerName" class="text-[var(--primary)]">...</strong></span>
+                        </div>
+                        <div class="flex items-center gap-3 text-sm">
+                            <i data-lucide="map-pin" class="text-gray-400 w-4 h-4"></i>
+                            <span class="text-gray-600">Valor a receber: <strong id="detailPrice" class="text-[var(--accent)] font-bold">R$ 0,00</strong></span>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 bg-red-50 p-3 rounded-xl flex items-start gap-3 border border-red-100">
+                        <i data-lucide="alert-triangle" class="w-4 h-4 text-[var(--alert)] mt-0.5"></i>
+                        <div>
+                            <h4 class="font-bold text-xs text-[var(--alert)] uppercase">Atenção Especial</h4>
+                            <p id="detailObs" class="text-xs text-[var(--alert)] opacity-80 mt-1">Nenhuma observação.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex gap-3 mt-auto">
+                    <button class="flex-1 py-4 border-2 border-red-400 text-red-500 rounded-2xl font-bold text-sm hover:bg-red-50 transition-colors" onclick="navigate('home')">RECUSAR</button>
+                    <button class="flex-[2] btn-main !bg-[var(--accent)]" onclick="acceptWalk()">ACEITAR PASSEIO</button>
+                </div>
+            </div>
+        </section>
+
+        <section id="track" class="screen" style="justify-content: space-between;">
+            <div class="bg-slate-100 flex-1 relative" style="height: 100%;">
+                <img src="https://images.unsplash.com/photo-1569336415962-a4bd9f6ffc07?w=1080&h=1080&crop=faces" class="absolute inset-0 w-full h-full object-cover grayscale opacity-60">
+                
+                <div class="absolute top-10 left-6 right-6 p-3 bg-white/90 backdrop-blur-sm rounded-2xl flex items-center justify-between shadow-lg z-10 border border-gray-100">
+                    <div class="flex items-center gap-3">
+                        <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                        <span id="trackPetName" class="font-bold text-[var(--primary)] text-sm">Em Rota</span>
+                    </div>
+                    <span class="text-[var(--accent)] font-mono font-bold">Agora</span>
+                </div>
+                
+                <div class="absolute top-[50%] left-[50%] transform -translate-x-1/2 -translate-y-1/2 z-20">
+                    <div class="relative">
+                        <div class="w-16 h-16 bg-[var(--accent)]/30 rounded-full animate-ping absolute inset-0"></div>
+                        <img id="trackPetImg" src="https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=100&h=100&crop=faces" class="w-16 h-16 rounded-full object-cover border-4 border-[var(--primary)] shadow-xl relative z-10">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="p-6 bg-white rounded-t-[2.5rem] shadow-[0_-10px_30px_rgba(0,0,0,0.1)] relative z-20 flex flex-col gap-4">
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="text-lg font-bold text-[var(--primary)]">Controles do Passeio</h3>
+                    <div id="trackPriceBadge" class="bg-gray-100 px-3 py-1 rounded-full text-xs font-bold text-gray-500">Ganhos: R$ 0,00</div>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3 mb-2">
+                    <button class="flex flex-col items-center justify-center p-3 bg-blue-50 text-blue-600 rounded-xl border border-blue-100">
+                        <i data-lucide="camera" class="w-5 h-5 mb-1"></i><span class="text-xs font-bold">Enviar Foto</span>
+                    </button>
+                    <button class="flex flex-col items-center justify-center p-3 bg-green-50 text-green-600 rounded-xl border border-green-100">
+                        <i data-lucide="poop" class="w-5 h-5 mb-1"></i><span class="text-xs font-bold">Registrar Cocô</span>
+                    </button>
+                </div>
+
+                <button class="btn-main w-full !bg-[var(--primary)] mt-2" onclick="finishWalk()">Finalizar Passeio</button>
+            </div>
+        </section>
+
+        <section id="rating" class="screen bg-[var(--muted)]" style="justify-content: center;">
+            <div class="h-32 bg-[var(--primary)] p-6 relative flex flex-col items-center justify-center pt-8 rounded-b-[2.5rem]">
+                <h1 class="text-xl text-white font-bold">Ótimo Trabalho! 💰</h1>
+            </div>
+            <div class="p-6 -mt-16 flex flex-col items-center flex-1">
+                <div class="bg-white w-full p-6 rounded-3xl shadow-sm border border-gray-100 text-center mb-6">
+                    <p class="text-sm text-gray-500 font-medium">Você ganhou</p>
+                    <h2 id="ratingEarned" class="text-4xl font-bold text-[var(--accent)] mt-1">R$ 0,00</h2>
+                    <p class="text-xs text-gray-400 mt-2">O valor já foi adicionado à sua carteira.</p>
+                </div>
+
+                <h2 class="text-xl font-bold text-center text-[var(--primary)]">Como o pet se comportou?</h2>
+                <div class="flex gap-3 my-6 stars">
+                    <i data-lucide="bone" class="w-10 h-10 text-slate-300 fill-slate-300 cursor-pointer" onclick="setRating(1)"></i>
+                    <i data-lucide="bone" class="w-10 h-10 text-slate-300 fill-slate-300 cursor-pointer" onclick="setRating(2)"></i>
+                    <i data-lucide="bone" class="w-10 h-10 text-slate-300 fill-slate-300 cursor-pointer" onclick="setRating(3)"></i>
+                    <i data-lucide="bone" class="w-10 h-10 text-[var(--accent)] fill-[var(--accent)] cursor-pointer" onclick="setRating(4)"></i>
+                    <i data-lucide="bone" class="w-10 h-10 text-slate-300 fill-slate-300 cursor-pointer" onclick="setRating(5)"></i>
+                </div>
+                
+                <button class="btn-main w-full mt-auto" onclick="returnToHome()">Voltar ao Painel</button>
+            </div>
+        </section>
+
+        <section id="profile" class="screen bg-[var(--muted)]">
+            <div class="h-32 bg-[var(--primary)] rounded-b-[2.5rem] p-6 relative flex flex-col items-center justify-center pt-8">
+                <i data-lucide="chevron-left" onclick="navigate('home')" class="cursor-pointer text-white absolute left-6 top-10"></i>
+                <h1 class="text-lg text-white font-medium">Meu Perfil Pro</h1>
+            </div>
+            <div class="p-6 -mt-16 flex flex-col items-center">
+                <img src="https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=200" class="avatar-circle mb-4 border-white shadow-md">
+                <h2 id="profileName" class="text-2xl font-bold text-[var(--primary)]">...</h2>
+                <p class="text-gray-500 text-sm">Membro Verificado</p>
+            </div>
+            <div class="px-6 space-y-4">
+                <div class="bg-white p-4 rounded-xl flex justify-between items-center shadow-sm border border-gray-100">
+                    <div class="flex items-center gap-3">
+                        <div class="bg-purple-50 p-2 rounded-full"><i data-lucide="star" class="w-5 h-5 text-purple-500"></i></div>
+                        <h4 class="font-semibold text-sm text-[var(--primary)]">Minha Avaliação</h4>
+                    </div>
+                    <span id="profileRating" class="font-bold text-[var(--primary)]">...</span>
+                </div>
+            </div>
+        </section>
+
+    </div>
+</body>
+</html>

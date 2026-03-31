@@ -1,8 +1,24 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
+/* Desativa seleção de texto na interface */
+* {
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+input, textarea {
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
+}
+
+
 :root {
-    --primary: #030213; 
-    --accent: #14b8a6;  
+    --primary: #030213;
+    --accent: #14b8a6;
     --light-teal: #ccfbf1;
     --accent-light: rgba(20, 184, 166, 0.1);
     --background: #ffffff;
@@ -19,6 +35,15 @@ body {
     align-items: center;
     min-height: 100vh;
     margin: 0;
+
+    body {
+        -webkit-user-select: none;
+        /* Chrome, Safari */
+        -ms-user-select: none;
+        /* Edge antigo */
+        user-select: none;
+        /* padrão */
+    }
 }
 
 /* O formato do aplicativo mobile no PC */
@@ -27,7 +52,7 @@ body {
     height: 740px;
     background: white;
     border-radius: 40px;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
     position: relative;
     overflow: hidden;
     border: 8px solid #1e293b;
@@ -43,11 +68,13 @@ body {
     position: absolute;
     width: 100%;
     box-sizing: border-box;
+    pointer-events: none;
 }
 
 .screen.active {
     display: flex;
     flex-direction: column;
+    pointer-events: auto;
 }
 
 /* Classes Utilitárias Compartilhadas */
@@ -92,6 +119,7 @@ body {
         align-items: flex-start;
         background-color: var(--background);
     }
+
     .mobile-shell {
         width: 100vw;
         height: 100vh;

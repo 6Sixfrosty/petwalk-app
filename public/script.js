@@ -1,6 +1,6 @@
 // Constante do seu backend
-const API_URL = "https://petwalk-api-0kzx.onrender.com/api";
-//'http://localhost:3000/api';
+const API_URL = "http://localhost:3000/api";
+//'http://localhost:3000/api'https://petwalk-api-0kzx.onrender.com/api;
 
 // Aguarda o HTML carregar para inicializar os ícones
 document.addEventListener("DOMContentLoaded", () => {
@@ -60,7 +60,7 @@ async function handleRegister(tipo) {
         }
     } catch (error) {
         console.error("Erro no cadastro:", error);
-        alert("Falha ao comunicar com o servidor. Verifique se o backend está rodando.");
+        alert("Falha ao comunicar com o servidor.");
     }
 }
 
@@ -92,9 +92,9 @@ async function handleAuthLogin() {
             
             // Redireciona de acordo com o cargo (role) real salvo no banco
             if (data.usuario.tipo_usuario === 'dono') {
-                window.location.href = '../interfaces/dono.html';
+                window.location.href = '../pages/petOwner/dono.html';
             } else if (data.usuario.tipo_usuario === 'passeador') {
-                window.location.href = '../interfaces/passeador.html';
+                window.location.href = '../pages/petwalker/petwalker.html';
             }
         } else {
             alert("Erro: " + data.erro);
@@ -102,6 +102,6 @@ async function handleAuthLogin() {
     
     } catch (error) {
         console.error("Erro no login:", error);
-        alert("Falha ao conectar no servidor. O backend está rodando na porta 3000?");
+        alert("Falha ao conectar no servidor");
     }
 }
