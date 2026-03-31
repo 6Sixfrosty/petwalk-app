@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:3000/api';//https://petwalk-api-0kzx.onrender.com
+const API_URL = 'https://petwalk-api-0kzx.onrender.com/api';
 let usuarioLogado = null;
 let listaPasseadores = [];
 let passeadorSelecionado = null;
