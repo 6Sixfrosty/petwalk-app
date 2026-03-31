@@ -1,4 +1,4 @@
-const API_URL = "https://petwalk-api-0kzx.onrender.com/api";
+const API_URL = 'http://localhost:3000/api';//https://petwalk-api-0kzx.onrender.com
 let usuarioLogado = null;
 let listaPasseadores = [];
 let passeadorSelecionado = null;
@@ -6,25 +6,71 @@ let petAtualId = null;
 let passeioAtualId = null;
 
 
+
+// ==========================================
+// Carregamento da pagina e proteção de rota
+// ==========================================
 function init() {
     lucide.createIcons();
     usuarioLogado = protegerRota('dono');
     if (!usuarioLogado) return;
 
-    fetchWalkers();
+    fetchProfile();
     fetchPet();
 }
-
 document.addEventListener("DOMContentLoaded", init);
+
+
+
 // ==========================================
-// BUSCAR PASSEADORES DO BANCO DE DADOS
+// Carregar Telas e chamar funções de FETCH
 // ==========================================
 
+// Lista de passeadores
+function walkersScreen() {
+    navigate('explore');
+    fetchWalkers();
+}
+
+document.addEventListener("click", walkersScreen, { capture: true, passive: true, once: false });
+
+// Perfil do pet
+function petProfileScreen() {
+    navigate('pet-profile');
+}
+
+// Mapa de passeadores
 function openMapScreen() {
     navigate('map-screen');
 }
 
 
+// ==========================================
+// funções de FETCH
+// ==========================================
+
+
+// buscar dados do perfil
+async function fetchProfile() {
+    try {
+        const response = await fetch(`${API_URL}/usuarios/${usuarioLogado.id}`);
+
+        if (!response.ok) {
+            throw new Error(`Erro HTTP: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        document.getElementById('profileName').innerText = data.nome || '—';
+        document.getElementById('profileEmail').innerText = data.email || '—';
+        document.getElementById('profilePhone').innerText = data.telefone || '—';
+
+    } catch (error) {
+        console.error('Erro ao buscar perfil:', error);
+    }
+}
+
+// buscar dados do Pet
 async function fetchPet() {
     try {
         const response = await fetch(`${API_URL}/pets/dono/${usuarioLogado.id}`);
@@ -45,10 +91,7 @@ async function fetchPet() {
     }
 }
 
-document.getElementById('btnExplore').addEventListener('click', () => {
-    navigate('explore');
-    fetchWalkers();
-});
+
 
 async function fetchWalkers() {
     try {
